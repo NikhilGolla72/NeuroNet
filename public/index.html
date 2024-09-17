@@ -1,43 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroNet - Brain Disorder Prediction</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+    }
+    
+    header {
+        background-color: #333;
+        color: white;
+        padding: 20px;
+        text-align: center;
+    }
+    
+    h1 {
+        margin: 0;
+    }
+    
+    main {
+        padding: 20px;
+    }
+    
+    .form-section, .result-section {
+        background-color: white;
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 600px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    form div {
+        margin-bottom: 15px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+    }
+    
+    input[type="text"], input[type="number"], select, textarea, input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    
+    button {
+        background-color: #28a745;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    button:hover {
+        background-color: #218838;
+    }
+    
+    .result-section h2 {
+        margin-top: 0;
+    }
+    
+    a {
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    a:hover {
+        text-decoration: underline;
+    }
+    
+    </style>
+</head>
+<body>
+    <header>
+        <h1>NeuroNet - AI-driven Brain Disorder Prediction</h1>
+    </header>
+    
+    <main>
+        <section class="form-section">
+            <h2>Enter Patient Information and Upload MRI Scans</h2>
+            <form id="predictionForm" enctype="multipart/form-data">
+                <div>
+                    <label for="age">Patient Age:</label>
+                    <input type="number" id="age" name="age" required>
+                </div>
+                
+                <div>
+                    <label for="gender">Gender:</label>
+                    <select id="gender" name="gender" required>
+                        <option value="Female">Female</option>
+                        <option value="Male">Male</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="family_history">Family History (comma separated):</label>
+                    <input type="text" id="family_history" name="family_history" placeholder="e.g., Alzheimer's Disease, Parkinson's Disease">
+                </div>
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+                <div>
+                    <label for="symptoms">Symptoms (comma separated):</label>
+                    <input type="text" id="symptoms" name="symptoms" placeholder="e.g., Memory loss, Difficulty concentrating">
+                </div>
+                
+                <div>
+                    <label for="medical_records">Medical Records:</label>
+                    <textarea id="medical_records" name="medical_records" placeholder="Describe any relevant medical records here" rows="3"></textarea>
+                </div>
+                
+                <div>
+                    <label for="mri_scans">Upload MRI Scans (JPEG files):</label>
+                    <input type="file" id="mri_scans" name="mri_scans" multiple accept="image/jpeg" required>
+                </div>
+                
+                <button type="submit">Submit for Prediction</button>
+            </form>
+        </section>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+        <section class="result-section" id="resultSection" style="display: none;">
+            <h2>Prediction Results</h2>
+            <div id="prediction"></div>
+            <div id="diagnosticReport"></div>
+            <div id="visualizedResults"></div>
+        </section>
+    </main>
+    
+    <script>
+      const form = document.getElementById('predictionForm');
+      const resultSection = document.getElementById('resultSection');
+      const predictionDiv = document.getElementById('prediction');
+      const diagnosticReportDiv = document.getElementById('diagnosticReport');
+      const visualizedResultsDiv = document.getElementById('visualizedResults');
+      
+      form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+      
+          const formData = new FormData();
+          formData.append('age', document.getElementById('age').value);
+          formData.append('gender', document.getElementById('gender').value);
+          formData.append('family_history', document.getElementById('family_history').value);
+          formData.append('symptoms', document.getElementById('symptoms').value);
+          formData.append('medical_records', document.getElementById('medical_records').value);
+      
+          const mriFiles = document.getElementById('mri_scans').files;
+          for (let i = 0; i < mriFiles.length; i++) {
+              formData.append('mri_scans', mriFiles[i]);
+          }
+      
+          try {
+              const response = await fetch('/predict', {
+                  method: 'POST',
+                  body: formData
+              });
+      
+              if (response.ok) {
+                  const result = await response.json();
+                  resultSection.style.display = 'block';
+                  
+                  predictionDiv.innerHTML = `
+                      <h3>Prediction:</h3>
+                      <p>${result.prediction}</p>
+                  `;
+                  
+                  diagnosticReportDiv.innerHTML = `
+                      <h3>Diagnostic Report:</h3>
+                      <p>${result.diagnostic_report}</p>
+                  `;
+                  
+                  visualizedResultsDiv.innerHTML = `
+                      <h3>Visualized Results:</h3>
+                      <a href="${result.visualized_results}" target="_blank">View Detailed Analysis</a>
+                  `;
+              } else {
+                  const errorText = await response.text();
+                  console.error('Error response:', errorText);
+                  alert('There was an issue with the prediction request.');
+              }
+          } catch (error) {
+              console.error('Fetch error:', error);
+              alert('There was an issue with the prediction request.');
+          }
+      });
+  </script>
+  
+  
+</body>
 </html>

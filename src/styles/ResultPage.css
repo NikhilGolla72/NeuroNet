@@ -1,0 +1,16 @@
+.ResultPage {
+  padding: 20px;
+}
+
+.ResultPage h2 {
+  margin-bottom: 20px;
+}
+
+.ResultPage div {
+  margin-bottom: 15px;
+}
+
+.ResultPage ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}

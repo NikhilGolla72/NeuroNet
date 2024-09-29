@@ -1,5 +1,5 @@
 {
-  "name": "neuronet-frontend",
+  "name": "neuronet_new",
   "version": "1.0.0",
   "private": true,
   "dependencies": {
@@ -15,7 +15,10 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:5000",
+  "proxy": "http://localhost:5000",  
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.14.5"
+  },
   "browserslist": {
     "production": [
       ">0.2%",

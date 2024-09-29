@@ -7,10 +7,10 @@ function App() {
         gender: '',
         familyHistory: '',
         symptoms: '',
-        mriScans: [],
-        medicalRecords: []
+        mriScans: []
     });
     const [response, setResponse] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -23,7 +23,7 @@ function App() {
     const handleFileChange = (e) => {
         setFormData(prevState => ({
             ...prevState,
-            mriScans: Array.from(e.target.files)
+            mriScans: Array.from(e.target.files)  // Handle multiple MRI scan files
         }));
     };
 
@@ -34,10 +34,10 @@ function App() {
         formDataToSend.append('gender', formData.gender);
         formDataToSend.append('familyHistory', formData.familyHistory);
         formDataToSend.append('symptoms', formData.symptoms);
-        formDataToSend.append('medicalRecords', formData.medicalRecords);
 
-        formData.mriScans.forEach((file, index) => {
-            formDataToSend.append(`mriScans[${index}]`, file);
+        // Append MRI scan files to the FormData object
+        formData.mriScans.forEach((file) => {
+            formDataToSend.append('mriScans[]', file);  // File array must be appended this way
         });
 
         try {
@@ -47,26 +47,66 @@ function App() {
                 }
             });
             setResponse(response.data);
+            setErrorMessage(null);  // Clear any error message on success
         } catch (error) {
-            console.error('There was an issue with the prediction request.', error);
+            console.error('Prediction request failed:', error);
+            setErrorMessage(error.response?.data?.error || 'An unexpected error occurred.');
         }
     };
 
     return (
         <div className="App">
+            <h1>NeuroNet Diagnosis Form</h1>
+
             <form onSubmit={handleSubmit}>
-                <input type="number" name="age" value={formData.age} onChange={handleChange} placeholder="Age" required />
-                <input type="text" name="gender" value={formData.gender} onChange={handleChange} placeholder="Gender" required />
-                <input type="text" name="familyHistory" value={formData.familyHistory} onChange={handleChange} placeholder="Family History" required />
-                <input type="text" name="symptoms" value={formData.symptoms} onChange={handleChange} placeholder="Symptoms" required />
-                <input type="file" multiple onChange={handleFileChange} />
-                <textarea name="medicalRecords" value={formData.medicalRecords} onChange={handleChange} placeholder="Medical Records" required></textarea>
+                <input
+                    type="number"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    placeholder="Age"
+                    required
+                />
+                <input
+                    type="text"
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    placeholder="Gender"
+                    required
+                />
+                <input
+                    type="text"
+                    name="familyHistory"
+                    value={formData.familyHistory}
+                    onChange={handleChange}
+                    placeholder="Family History"
+                    required
+                />
+                <input
+                    type="text"
+                    name="symptoms"
+                    value={formData.symptoms}
+                    onChange={handleChange}
+                    placeholder="Symptoms"
+                    required
+                />
+                <input
+                    type="file"
+                    multiple
+                    onChange={handleFileChange}
+                    required
+                />
                 <button type="submit">Submit</button>
             </form>
+
+            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+
             {response && (
                 <div>
-                    <h2>Prediction Results:</h2>
-                    <pre>{JSON.stringify(response, null, 2)}</pre>
+                    <h2>Prediction Results</h2>
+                    <p>Prediction: {response.prediction}</p>
+                    <p>Diagnostic Report: {response.diagnostic_report}</p>
                 </div>
             )}
         </div>

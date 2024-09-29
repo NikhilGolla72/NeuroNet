@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms
+from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
 from PIL import Image
 import os
+from torch.utils.data import Dataset, DataLoader  # Add this line to fix the error
+
 
 class MRIDataset(Dataset):
     def __init__(self, data_dir, transform=None):
@@ -18,7 +20,7 @@ class MRIDataset(Dataset):
     def __getitem__(self, idx):
         img_path = self.image_paths[idx]
         image = Image.open(img_path).convert('RGB')
-        label = 0  # Set appropriate label based on the folder name or data structure
+        label = 0  # Set label appropriately based on data structure (binary classification)
         if self.transform:
             image = self.transform(image)
         return image, label
@@ -29,7 +31,7 @@ class SimpleNN(nn.Module):
         self.conv1 = nn.Conv2d(3, 16, 3, 1)
         self.conv2 = nn.Conv2d(16, 32, 3, 1)
         self.fc1 = nn.Linear(32 * 62 * 62, 128)
-        self.fc2 = nn.Linear(128, 2)  # Adjust based on the number of classes
+        self.fc2 = nn.Linear(128, 2)  # Binary classification: Healthy vs Disorder
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
@@ -81,8 +83,4 @@ def train_model(train_dir, val_dir, epochs=10, batch_size=16, learning_rate=0.00
 
         print(f'Epoch {epoch+1}/{epochs}, Loss: {val_loss/len(val_loader)}, Accuracy: {100 * correct / total}%')
 
-    torch.save(model.state_dict(), 'models/trained_model.pt')
-
-
-if __name__ == '__main__':
-    train_model('data/train', 'data/val')
+    torch.save(model.state_dict(), 'model/trained_model.pt')

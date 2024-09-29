@@ -5,9 +5,7 @@ import os
 from models import predict_disorder  # Importing the disorder prediction function
 
 # Set up your OpenAI API key
-openai.api_key = "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"
- # Ensure to set your key as an environment variable
-
+openai.api_key = "APi_key"
 app = Flask(__name__)
 CORS(app)
 

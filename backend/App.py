@@ -64,7 +64,7 @@ def predict():
 
         # Predict disorder using the MRI analysis model
         print("Analyzing MRI scans...")
-        disorder_prediction = predict_disorder(mri_scan_filenames)
+        disorder_prediction = predict_disorder(mri_scan_filenames)  # **Newly integrated call**
         print(f"Disorder Prediction: {disorder_prediction}")
 
         # Generate GPT prompt with MRI analysis

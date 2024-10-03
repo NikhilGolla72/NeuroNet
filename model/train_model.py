@@ -32,16 +32,15 @@ class MRIDataset(Dataset):
         # Extract the label based on the folder name in the path
         label_folder = os.path.basename(os.path.dirname(img_path))  # Get the folder name containing the image
 
-        # Define the mapping from folder name to numerical label (case-sensitive)
+        # Define the mapping from folder name to numerical label
         label_mapping = {
             "Mild Dementia": 0,
             "Moderate Dementia": 1,
             "Non Demented": 2,
-            "very mild Dementia": 3  # Corrected case sensitivity
+            "very mild Dementia": 3  
         }
         
-        # Get the label based on the folder name
-        label = label_mapping.get(label_folder, -1)  # Return -1 if label is not found
+        label = label_mapping.get(label_folder, -1)
         
         if self.transform:
             image = self.transform(image)
@@ -55,59 +54,67 @@ class SimpleNN(nn.Module):
         self.conv1 = nn.Conv2d(3, 16, 3, 1)
         self.conv2 = nn.Conv2d(16, 32, 3, 1)
         self.fc1 = nn.Linear(32 * 14 * 14, 128)  # Adjusted size for 64x64 images
-        self.fc2 = nn.Linear(128, 4)  # 4 classes: No Dementia, Mild, Moderate, Very Mild
+        self.fc2 = nn.Linear(128, 4)
+        self.dropout = nn.Dropout(0.5)  # Dropout layer to prevent overfitting
 
     def forward(self, x):
         x = torch.relu(self.conv1(x))
         x = torch.max_pool2d(x, 2)
         x = torch.relu(self.conv2(x))
         x = torch.max_pool2d(x, 2)
-        x = x.view(-1, 32 * 14 * 14)  # Adjusted size for 64x64 images
-        x = torch.relu(self.fc1(x))
+        x = x.view(-1, 32 * 14 * 14)
+        x = self.dropout(torch.relu(self.fc1(x)))
         x = self.fc2(x)
         return x
 
 
-def train_model(train_dir, val_dir, epochs=10, batch_size=32, learning_rate=0.001):
+def train_model(train_dir, val_dir, epochs=10, batch_size=32, learning_rate=0.001, weight_decay=0.0001, patience=5):
     print(f"Training directory: {train_dir}")
     print(f"Validation directory: {val_dir}")
 
     # Check if the train and validation directories exist
-    if not os.path.exists(train_dir):
-        print(f"Training directory does not exist: {train_dir}")
+    if not os.path.exists(train_dir) or not os.path.exists(val_dir):
+        print("Invalid directories.")
         return
 
-    if not os.path.exists(val_dir):
-        print(f"Validation directory does not exist: {val_dir}")
-        return
-
-    # Transform: Resize images to a smaller size (64x64) for faster training
-    transform = transforms.Compose([
-        transforms.Resize((64, 64)),  # Smaller size
+    # Transform: Resize images to 64x64 and apply data augmentation
+    transform_train = transforms.Compose([
+        transforms.Resize((64, 64)),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(10),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2),
+        transforms.ToTensor(),
+    ])
+    transform_val = transforms.Compose([
+        transforms.Resize((64, 64)),
         transforms.ToTensor(),
     ])
     
-    train_dataset = MRIDataset(train_dir, transform=transform)
-    val_dataset = MRIDataset(val_dir, transform=transform)
+    train_dataset = MRIDataset(train_dir, transform=transform_train)
+    val_dataset = MRIDataset(val_dir, transform=transform_val)
 
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)  # Added workers
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)    # Added workers
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
-    model = SimpleNN().to(device)  # Move model to GPU if available
+    model = SimpleNN().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-    
-    scaler = torch.amp.GradScaler()  # Updated mixed precision training
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+
+    scaler = torch.amp.GradScaler()  # Mixed precision training
+
+    # Early stopping variables
+    best_val_loss = float('inf')
+    patience_counter = 0
 
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
         for images, labels in train_loader:
-            images, labels = images.to(device), labels.to(device)  # Move data to GPU if available
+            images, labels = images.to(device), labels.to(device)
 
             optimizer.zero_grad()
 
-            with torch.amp.autocast(device_type='cuda'):  # Updated mixed precision
+            with torch.amp.autocast(device_type='cuda'):
                 outputs = model(images)
                 loss = criterion(outputs, labels)
 
@@ -133,10 +140,22 @@ def train_model(train_dir, val_dir, epochs=10, batch_size=32, learning_rate=0.00
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
-        print(f'Epoch {epoch+1}/{epochs}, Validation Loss: {val_loss/len(val_loader)}, Accuracy: {100 * correct / total}%')
+        val_loss /= len(val_loader)
+        accuracy = 100 * correct / total
+        print(f'Epoch {epoch+1}/{epochs}, Validation Loss: {val_loss}, Accuracy: {accuracy}%')
 
-    torch.save(model.state_dict(), 'trained_model.pt')
-    print('Model training complete and saved as trained_model.pt')
+        # Early stopping check
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            patience_counter = 0  # Reset patience counter
+            torch.save(model.state_dict(), 'trained_model.pt')  # Save the best model
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                print(f"Early stopping triggered after {epoch+1} epochs.")
+                break
+
+    print('Training complete. Best model saved as trained_model.pt.')
 
 
 if __name__ == '__main__':

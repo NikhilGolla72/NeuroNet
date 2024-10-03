@@ -8,7 +8,7 @@ from train_model import SimpleNN  # Import the model
 def preprocess_image(image_path):
     image = Image.open(image_path).convert('RGB')
     transform = transforms.Compose([
-        transforms.Resize((128, 128)),  # Adjust to your model's input size
+        transforms.Resize((64,64)),  # Adjust to your model's input size
         transforms.ToTensor()
     ])
     return transform(image).unsqueeze(0)  # Add batch dimension
@@ -17,7 +17,7 @@ def preprocess_image(image_path):
 def predict_disorder(mri_scan_filenames):
     # **Loading the pre-trained model safely**
     model = SimpleNN()
-    model.load_state_dict(torch.load('model/trained_model.pt', map_location=torch.device('cpu'), weights_only=True))  # CPU inference
+    model.load_state_dict(torch.load('C:\\Users\\manda\\OneDrive\\Desktop\\Neuronet\\NeuroNet\\model\\trained_model.pt', map_location=torch.device('cpu'), weights_only=True))  # CPU inference
     model.eval()
 
     predictions = []

@@ -5,7 +5,7 @@ import os
 from models import predict_disorder  # Importing the disorder prediction function
 
 # Set up your OpenAI API key
-openai.api_key='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'
+openai.api_key="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"
 app = Flask(__name__)
 CORS(app)
 
@@ -23,7 +23,7 @@ def generate_prompt(patient_data, mri_analysis):
     - Symptoms: {patient_data['symptoms']}
     - MRI Analysis: {mri_analysis}
 
-    Please provide a medical diagnosis and detailed report based on this data.
+    Please provide a 2 lines medical diagnosis and detailed report based on this data.
     """
     return prompt
 

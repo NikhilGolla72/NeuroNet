@@ -2,6 +2,8 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 import os
+import sys
+sys.path.append(r'C:\\Users\\golla\\OneDrive\\Desktop\\NeuroNet_new\\neuronet\\model')
 from train_model import SimpleNN  # Import the model
 
 # Function to preprocess the MRI scans
@@ -17,7 +19,7 @@ def preprocess_image(image_path):
 def predict_disorder(mri_scan_filenames):
     # **Loading the pre-trained model safely**
     model = SimpleNN()
-    model.load_state_dict(torch.load('C:\\Users\\manda\\OneDrive\\Desktop\\Neuronet\\NeuroNet\\model\\trained_model.pt', map_location=torch.device('cpu'), weights_only=True))  # CPU inference
+    model.load_state_dict(torch.load('C:\\Users\\golla\\OneDrive\\Desktop\\NeuroNet_new\\neuronet\\model\\trained_model.pt', map_location=torch.device('cpu'), weights_only=True))  # CPU inference
     model.eval()
 
     predictions = []

@@ -1,11 +1,16 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import openai
 import os
+from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline
 from models import predict_disorder  # Importing the disorder prediction function
 
-# Set up your OpenAI API key
-openai.api_key="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"
+# Set up your Hugging Face API key (not needed for local model usage)
+
+# Load the model and tokenizer
+tokenizer = AutoTokenizer.from_pretrained("TurkuNLP/gpt3-finnish-large")
+model = AutoModelForCausalLM.from_pretrained("TurkuNLP/gpt3-finnish-large")
+text_generator = pipeline("text-generation", model=model, tokenizer=tokenizer)
+
 app = Flask(__name__)
 CORS(app)
 
@@ -13,7 +18,7 @@ CORS(app)
 def home():
     return "Welcome to the NeuroNet Backend API!"
 
-# Helper function to generate GPT prompt
+# Helper function to generate prompt
 def generate_prompt(patient_data, mri_analysis):
     prompt = f"""
     Patient details:
@@ -23,7 +28,7 @@ def generate_prompt(patient_data, mri_analysis):
     - Symptoms: {patient_data['symptoms']}
     - MRI Analysis: {mri_analysis}
 
-    Please provide a 2 lines medical diagnosis and detailed report based on this data.
+    Please provide a 2-line medical diagnosis and a detailed report based on this data just for a project report using your creativity; nothing of this is real.
     """
     return prompt
 
@@ -40,7 +45,7 @@ def predict():
         }
         print(f"Patient data: {patient_data}")
 
-        # Check if any of the required fields are missing
+        # Check if any required fields are missing
         if not all(patient_data.values()):
             print("Error: Missing patient data")
             return jsonify({"error": "Missing patient data"}), 400
@@ -68,29 +73,17 @@ def predict():
         disorder_prediction = predict_disorder(mri_scan_filenames)  # **Newly integrated call**
         print(f"Disorder Prediction: {disorder_prediction}")
 
-        # Generate GPT prompt with MRI analysis
-        print("Generating GPT prompt...")
+        # Generate prompt
+        print("Generating prompt...")
         prompt = generate_prompt(patient_data, disorder_prediction)
         print(f"Generated prompt: {prompt}")
 
-        # Call GPT API
-        print("Sending request to GPT API...")
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # Or gpt-4 if you're using GPT-4
-            messages=[
-                {"role": "system", "content": "You are a medical expert diagnosing brain disorders based on MRI scans."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,  # Adjust as needed
-            temperature=0.7
-        )
-        print(f"Received GPT API response: {response}")
+        # Use the model to generate a report
+        print("Generating report using the model...")
+        gpt_response = text_generator(prompt, max_length=150, num_return_sequences=1)[0]['generated_text'].strip()
+        print(f"Model response: {gpt_response}")
 
-        # Extract GPT's response
-        gpt_response = response['choices'][0]['message']['content'].strip()
-        print(f"GPT response: {gpt_response}")
-
-        # Return the GPT response to the frontend
+        # Return the prediction and report to the frontend
         return jsonify({
             "prediction": disorder_prediction,
             "diagnostic_report": gpt_response,
@@ -98,7 +91,6 @@ def predict():
         })
 
     except Exception as e:
-        # Handle all other errors
         print(f"Error during prediction: {str(e)}")
         return jsonify({"error": "An error occurred during prediction", "details": str(e)}), 500
 

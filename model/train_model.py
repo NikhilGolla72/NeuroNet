@@ -159,5 +159,5 @@ def train_model(train_dir, val_dir, epochs=10, batch_size=32, learning_rate=0.00
 
 
 if __name__ == '__main__':
-    train_model('C:\\Users\\golla\\OneDrive\\Desktop\\NeuroNet_new\\neuronet\\data\\train', 
-                'C:\\Users\\golla\\OneDrive\\Desktop\\NeuroNet_new\\neuronet\\data\\val')
+    train_model('data/train', 
+                'data/val')

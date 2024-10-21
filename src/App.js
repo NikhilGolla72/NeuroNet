@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import './App.css';
+import './App.css';  // Import CSS file for styling
+import logo from '/Users/bhanuprakash/Desktop/Neuro/NeuroNet/src/logoNeuro.webp';  // Use relative path for portability
+
 function App() {
     const [formData, setFormData] = useState({
         age: '',
@@ -11,7 +13,9 @@ function App() {
     });
     const [response, setResponse] = useState(null);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [loading, setLoading] = useState(false);  // For showing loading state
 
+    // Handle input change for text fields
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prevState => ({
@@ -20,51 +24,62 @@ function App() {
         }));
     };
 
+    // Handle file input change for MRI scans
     const handleFileChange = (e) => {
         setFormData(prevState => ({
             ...prevState,
-            mriScans: Array.from(e.target.files)  // Handle multiple MRI scan files
+            mriScans: Array.from(e.target.files)  // Allow multiple files
         }));
     };
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);  // Show loading while form is submitted
+
         const formDataToSend = new FormData();
         formDataToSend.append('age', formData.age);
         formDataToSend.append('gender', formData.gender);
         formDataToSend.append('familyHistory', formData.familyHistory);
         formDataToSend.append('symptoms', formData.symptoms);
 
-        // Append MRI scan files to the FormData object
+        // Append MRI scan files to FormData object
         formData.mriScans.forEach((file) => {
-            formDataToSend.append('mriScans[]', file);  // File array must be appended this way
+            formDataToSend.append('mriScans[]', file);
         });
 
         try {
+            // Send POST request to backend
             const response = await axios.post('http://localhost:5000/predict', formDataToSend, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            setResponse(response.data);
-            setErrorMessage(null);  // Clear any error message on success
+            setResponse(response.data);  // Set the API response
+            setErrorMessage(null);  // Clear any previous errors
         } catch (error) {
             console.error('Prediction request failed:', error);
             setErrorMessage(error.response?.data?.error || 'An unexpected error occurred.');
+        } finally {
+            setLoading(false);  // Stop loading after request completes
         }
     };
 
     return (
         <div className="App">
+            {/* Display the logo */}
+            <img src={logo} className="App-logo" alt="NeuroNet Logo" />
+            
             <h1>NeuroNet Diagnosis Form</h1>
 
-            <form onSubmit={handleSubmit}>
+            <form className="diagnosis-form" onSubmit={handleSubmit}>
                 <input
                     type="number"
                     name="age"
                     value={formData.age}
                     onChange={handleChange}
-                    placeholder="Age"
+                    placeholder="Enter your Age"
+                    min="0"
                     required
                 />
                 <input
@@ -72,7 +87,7 @@ function App() {
                     name="gender"
                     value={formData.gender}
                     onChange={handleChange}
-                    placeholder="Gender"
+                    placeholder="Enter your Gender"
                     required
                 />
                 <input
@@ -80,7 +95,7 @@ function App() {
                     name="familyHistory"
                     value={formData.familyHistory}
                     onChange={handleChange}
-                    placeholder="Family History"
+                    placeholder="Family History of Disorders"
                     required
                 />
                 <input
@@ -88,25 +103,28 @@ function App() {
                     name="symptoms"
                     value={formData.symptoms}
                     onChange={handleChange}
-                    placeholder="Symptoms"
+                    placeholder="Describe Symptoms"
                     required
                 />
                 <input
                     type="file"
                     multiple
                     onChange={handleFileChange}
+                    accept=".jpg,.jpeg,.png,.webp"
                     required
                 />
-                <button type="submit">Submit</button>
+                <button type="submit" disabled={loading}>
+                    {loading ? 'Submitting...' : 'Submit'}
+                </button>
             </form>
 
-            {errorMessage && <p style={{ color: 'red' }}>{errorMessage}</p>}
+            {errorMessage && <p className="error-message">{errorMessage}</p>}
 
             {response && (
-                <div>
+                <div className="results">
                     <h2>Prediction Results</h2>
-                    <p>Prediction: {response.prediction}</p>
-                    <p>Diagnostic Report: {response.diagnostic_report}</p>
+                    <p><strong>Prediction:</strong> {response.prediction}</p>
+                    <p><strong>Diagnostic Report:</strong> {response.diagnostic_report}</p>
                 </div>
             )}
         </div>

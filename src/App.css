@@ -1,38 +1,99 @@
+/* Basic layout for the app container */
 .App {
   text-align: center;
+  max-width: 350px;  /* Reduce max width to make form narrower */
+  margin: 20px auto;  /* Add some margin for spacing */
+  padding: 15px;  /* Reduce padding for compact layout */
+  background-color: rgba(255, 255, 255, 0.9);  /* Slight transparency */
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
 }
 
+/* Background image for the entire page */
+body {
+  background-image: url('/Users/bhanuprakash/Desktop/Neuro/NeuroNet/src/neuronet2.webp');  /* Use relative path */
+  background-size: cover;  /* Ensure the image covers the entire page */
+  background-position: center;  /* Center the image */
+  background-repeat: no-repeat;  /* Prevent repeating */
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;  /* Set global font */
+}
+
+/* Style for the logo */
 .App-logo {
-  height: 40vmin;
-  pointer-events: none;
+  height: 80px;  /* Reduce logo size for a smaller layout */
+  margin-bottom: 15px;  /* Reduce space below the logo */
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
+/* Form layout */
+.diagnosis-form {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
+  flex-direction: column;  /* Stack inputs and button vertically */
+  align-items: center;  /* Center align form elements */
+}
+
+/* Form inputs and button styling */
+.diagnosis-form input,
+.diagnosis-form button {
+  width: calc(100% - 30px);  /* Reduce width for compact layout */
+  padding: 8px;  /* Reduce padding */
+  margin: 8px 0;  /* Reduce vertical spacing between inputs */
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;  /* Reduce font size for a compact form */
+}
+
+/* File input field styling */
+.diagnosis-form input[type="file"] {
+  padding: 4px;  /* Reduce padding for file input */
+}
+
+/* Submit button styling */
+button {
+  background-color: #4CAF50;
   color: white;
+  padding: 8px 16px;  /* Reduce padding for smaller button */
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;  /* Reduce font size */
+  margin-top: 8px;  /* Reduce top margin */
+  transition: background-color 0.3s;  /* Smooth transition for hover effect */
 }
 
-.App-link {
-  color: #61dafb;
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+button:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+/* Styling for error messages */
+.error-message {
+  color: red;
+  margin-top: 10px;  /* Reduce margin */
+  font-size: 13px;  /* Reduce font size */
+  font-weight: bold;
+}
+
+/* Results section styling */
+.results {
+  margin-top: 20px;  /* Reduce top margin */
+  padding: 15px;  /* Reduce padding */
+  background-color: rgba(255, 255, 255, 0.8);  /* Slight transparency */
+  border-radius: 8px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.results h2 {
+  color: #4CAF50;
+  margin-bottom: 15px;  /* Reduce bottom margin */
+}
+
+.results p {
+  margin: 8px 0;  /* Reduce vertical margin */
+  font-size: 16px;  /* Reduce font size */
 }

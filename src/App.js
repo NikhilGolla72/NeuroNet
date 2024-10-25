@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import './App.css';  // Import CSS file for styling
-import logo from '/Users/bhanuprakash/Desktop/Neuro/NeuroNet/src/logoNeuro.webp';  // Use relative path for portability
+import logo from './logoNeuro.webp';
 
 function App() {
     const [formData, setFormData] = useState({

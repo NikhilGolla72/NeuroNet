@@ -3,8 +3,9 @@ import torchvision.transforms as transforms
 from PIL import Image
 import os
 import sys
-sys.path.append(r'model/train_model.py')
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'model'))
 from train_model import SimpleNN  # Import the model
+
 
 # Function to preprocess the MRI scans
 def preprocess_image(image_path):
@@ -19,7 +20,14 @@ def preprocess_image(image_path):
 def predict_disorder(mri_scan_filenames):
     # **Loading the pre-trained model safely**
     model = SimpleNN()
-    model.load_state_dict(torch.load('model/trained_model.pt', map_location=torch.device('cpu'), weights_only=True))  # CPU inference
+    model_path = os.path.join(os.path.dirname(__file__), '..', 'model', 'trained_model.pt')
+        
+        # Check if the model exists
+    if not os.path.exists(model_path):
+            raise FileNotFoundError(f"Model file not found at {model_path}")
+        
+        # Load the model and map it to CPU for inference
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
     model.eval()
 
     predictions = []
